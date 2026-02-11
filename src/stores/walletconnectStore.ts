@@ -386,6 +386,7 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
             const wcErrorMessage = 'Transaction signing request aborted with error: ' + errorMessage;
             const response = { id, jsonrpc: '2.0', result: undefined , error: { message : wcErrorMessage } };
             await web3wallet.value?.respondSessionRequest({ topic, response });
+            return;
           }
 
           // Auto-approve early return
