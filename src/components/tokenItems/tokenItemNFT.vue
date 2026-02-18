@@ -41,11 +41,10 @@
   const loadingChildNftMetadata = ref(false);
   const destinationAddr = ref("");
   const tokenMetaData = ref(undefined as (BcmrTokenMetadata | undefined));
-  const mintUniqueNfts = ref(true);
-  const numberingUniqueNfts = ref("vm-numbers" as "vm-numbers" | "hex-numbers");
+  const mintCapability = ref("none" as "none" | "mutable" | "minting");
   const mintCommitment = ref("");
-  const mintAmountNfts = ref(undefined as string | undefined);
-  const startingNumberNFTs = ref(undefined as string | undefined);
+  const mintQuantity = ref(undefined as string | undefined);
+  const mintSequential = ref(false);
   const totalNumberNFTs = ref(undefined as number | undefined);
   const hasMintingNFT = ref(undefined as boolean | undefined);
   const showQrCodeDialog = ref(false);
@@ -415,48 +414,54 @@
   }
   const isHex = (str:string) => /^[A-F0-9]+$/i.test(str);
 
+  const isHexCommitment = (val: string) => val.startsWith("0x");
+
+  function commitmentForIndex(i: number): string {
+    const inputVal = mintCommitment.value;
+    if (isHexCommitment(inputVal)) {
+      const hexVal = inputVal.slice(2);
+      if (!mintSequential.value) return hexVal;
+      const startNum = parseInt(hexVal, 16) || 0;
+      let hex = (startNum + i).toString(16);
+      if (hex.length % 2 != 0) hex = `0${hex}`;
+      return hex;
+    }
+    // VM number encoding
+    const num = parseInt(inputVal) || 0;
+    if (!mintSequential.value) return binToHex(bigIntToVmNumber(BigInt(num)));
+    return binToHex(bigIntToVmNumber(BigInt(num + i)));
+  }
+
   async function mintNfts() {
     if (activeAction.value) return;
     const category = tokenData.value.category;
     const nftInfo = tokenData.value.nfts?.[0]?.token as TokenI;
     const tokenAddr = store.wallet.getTokenDepositAddress();
-    const recipientAddr = destinationAddr.value? destinationAddr.value : tokenAddr;
+    const recipientAddr = destinationAddr.value ? destinationAddr.value : tokenAddr;
 
     activeAction.value = 'minting';
     try {
       if(!nftInfo) return;
-      // mint amount should always be provided
-      if(mintAmountNfts.value == undefined) throw(t('tokenItem.errors.invalidAmountNfts'));
-      const mintAmount = parseInt(mintAmountNfts.value);
+      if(mintQuantity.value == undefined) throw(t('tokenItem.errors.invalidAmountNfts'));
+      const mintAmount = parseInt(mintQuantity.value);
 
-      // startingNumberNFTs should be provided if mintUniqueNfts is checked
-      if(mintUniqueNfts.value && startingNumberNFTs.value == undefined) throw(t('tokenItem.errors.invalidStartingNumber'));
-      // initialize commitment with mintCommitment or empty string
-      let nftCommitment = mintUniqueNfts.value? "" : mintCommitment.value;
-      const validCommitment = (isHex(nftCommitment) || nftCommitment == "")
-      if(!validCommitment) throw(t('tokenItem.errors.commitmentMustBeHex', { commitment: nftCommitment }));
+      // validate commitment input
+      if (mintCommitment.value && isHexCommitment(mintCommitment.value)) {
+        const hexVal = mintCommitment.value.slice(2);
+        if (hexVal && !isHex(hexVal)) throw(t('tokenItem.errors.commitmentMustBeHex', { commitment: hexVal }));
+      } else if (mintCommitment.value && isNaN(parseInt(mintCommitment.value))) {
+        throw(t('tokenItem.errors.commitmentMustBeHex', { commitment: mintCommitment.value }));
+      }
 
-      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee')); 
+      if((store.balance ?? 0n) < 550n) throw(t('tokenItem.errors.needBchForFee'));
       // construct array of TokenMintRequest
       const arraySendrequests = [];
       for (let i = 0; i < mintAmount; i++){
-        if(mintUniqueNfts.value && startingNumberNFTs.value){
-          const startingNumber = parseInt(startingNumberNFTs.value);
-          const nftNumber = startingNumber + i;
-          // handle both vm-numering and hex numbering
-          if(numberingUniqueNfts.value == "vm-numbers"){
-            const vmNumber = bigIntToVmNumber(BigInt(nftNumber));
-            nftCommitment = binToHex(vmNumber)
-          } else if(numberingUniqueNfts.value == "hex-numbers"){
-            nftCommitment = nftNumber.toString(16);
-            if(nftCommitment.length % 2 != 0) nftCommitment = `0${nftCommitment}`;
-          }
-        }
         const mintRequest = new TokenMintRequest({
           cashaddr: recipientAddr,
           nft: {
-            commitment: nftCommitment,
-            capability: "none",
+            commitment: commitmentForIndex(i),
+            capability: mintCapability.value,
           },
           value: 1000n,
         })
@@ -470,7 +475,8 @@
       })
       const { txId } = await store.wallet.tokenMint(category, arraySendrequests);
       const displayId = `${category.slice(0, 20)}...${category.slice(-8)}`;
-      const commitmentText = nftCommitment? `with commitment ${nftCommitment}`: "";
+      const nftCommitment = commitmentForIndex(0);
+      const commitmentText = nftCommitment ? `with commitment ${nftCommitment}` : "";
       let alertMessage = t('tokenItem.alerts.mintedNfts', { amount: mintAmount, category: displayId });
       if (mintAmount == 1) {
         alertMessage = t('tokenItem.alerts.mintedNft', { category: displayId, commitmentText });
@@ -489,9 +495,10 @@
       console.log(`${store.explorerUrl}/${txId}`);
       // reset input fields
       displayMintNfts.value = false;
+      mintCapability.value = "none";
       mintCommitment.value = "";
-      mintAmountNfts.value = undefined;
-      startingNumberNFTs.value = undefined;
+      mintQuantity.value = undefined;
+      mintSequential.value = false;
       // update utxo list
       await store.updateWalletUtxos();
       // update wallet history as fire-and-forget promise
@@ -795,27 +802,28 @@
           </div>
         </div>
         <div v-if="displayMintNfts" class="tokenAction">
-          {{ t('tokenItem.mint.title') }}
-          <div>
-            <input type="checkbox" v-model="mintUniqueNfts" style="margin: 0px; vertical-align: text-bottom;">
-            {{ t('tokenItem.mint.uniqueCheckbox') }}
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>{{ t('tokenItem.mint.title') }}</span>
+              <label :style="{ opacity: mintQuantity && parseInt(mintQuantity) > 1 ? 1 : 0.4 }">
+                {{ t('tokenItem.mint.sequentialCheckbox') }}
+                <input type="checkbox" v-model="mintSequential" :disabled="!mintQuantity || parseInt(mintQuantity) <= 1" style="margin: 0px 0px 0px 5px; vertical-align: text-bottom;">
+              </label>
+            </div>
+            <span class="grouped" style="align-items: center;">
+              <input v-model="mintCommitment" :placeholder="t('tokenItem.mint.commitmentPlaceholder')">
+              <select v-model="mintCapability" style="max-width: 130px;">
+                <option value="none">{{ t('tokenItem.mint.capabilityNone') }}</option>
+                <option value="mutable">{{ t('tokenItem.mint.capabilityMutable') }}</option>
+                <option value="minting">{{ t('tokenItem.mint.capabilityMinting') }}</option>
+              </select>
+              <input v-model="mintQuantity" type="number" :placeholder="t('tokenItem.mint.quantityPlaceholder')" style="max-width: 130px;">
+            </span>
+            <span class="grouped">
+              <input v-model="destinationAddr" @input="parseAddrParams()" :placeholder="t('tokenItem.mint.destinationPlaceholder')">
+              <input @click="mintNfts()" type="button" :value="activeAction === 'minting' ? t('tokenItem.mint.mintingButton') : t('tokenItem.mint.mintButton')" class="primaryButton" :disabled="activeAction !== null">
+            </span>
           </div>
-          <div v-if="mintUniqueNfts" style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
-            <label for="numbering" style="width: 80px;">{{ t('tokenItem.mint.numberingLabel') }}</label>
-            <select id="numbering" v-model="numberingUniqueNfts" style="max-width: 260px; padding: 4px 8px;">
-              <option value="vm-numbers">{{ t('tokenItem.mint.vmNumbers') }}</option>
-              <option value="hex-numbers">{{ t('tokenItem.mint.hexNumbers') }}</option>
-            </select>
-          </div>
-          <p class="grouped" style="align-items: center; margin-bottom: 5px;">
-            <input v-model="mintAmountNfts" type="number" :placeholder="t('tokenItem.mint.amountPlaceholder')">
-            <input v-if="mintUniqueNfts" v-model="startingNumberNFTs" type="number" :placeholder="t('tokenItem.mint.startingNumberPlaceholder')" style="margin-right: 0px;">
-            <input v-if="!mintUniqueNfts" v-model="mintCommitment" :placeholder="t('tokenItem.mint.commitmentPlaceholder')">
-          </p>
-          <span class="grouped">
-            <input v-model="destinationAddr" @input="parseAddrParams()" :placeholder="t('tokenItem.mint.destinationPlaceholder')">
-            <input @click="mintNfts()" type="button" :value="activeAction === 'minting' ? t('tokenItem.mint.mintingButton') : t('tokenItem.mint.mintButton')" class="primaryButton" :disabled="activeAction !== null">
-          </span>
         </div>
         <div v-if="displayBurnNft" class="tokenAction">
           <span v-if="isSingleNft && tokenData?.nfts?.[0]?.token?.nft?.capability == 'minting'">{{ t('tokenItem.burn.burnMintingDescription') }}</span>

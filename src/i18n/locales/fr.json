@@ -256,14 +256,13 @@
       "transferringButton": "Transfert de l'Auth..."
     },
     "mint": {
-      "title": "Créer un nombre de NFTs (uniques) vers une adresse spécifique",
-      "uniqueCheckbox": "rendre chaque NFT unique en les numérotant dans la collection",
-      "numberingLabel": "Numérotation :",
-      "vmNumbers": "Numéros VM (par défaut)",
-      "hexNumbers": "Numéros Hex (ancien cashonize)",
-      "amountPlaceholder": "nombre de NFTs",
-      "startingNumberPlaceholder": "numéro de départ",
-      "commitmentPlaceholder": "commitment",
+      "title": "Créer des NFTs vers une adresse spécifique",
+      "capabilityNone": "immuable",
+      "capabilityMutable": "mutable",
+      "capabilityMinting": "création",
+      "commitmentPlaceholder": "commitment (0 pour numéro VM, 0x00 pour hex)",
+      "quantityPlaceholder": "quantité",
+      "sequentialCheckbox": "séquentiel (auto-incrément)",
       "destinationPlaceholder": "adresse de destination",
       "mintButton": "Créer NFTs",
       "mintingButton": "Création en cours..."

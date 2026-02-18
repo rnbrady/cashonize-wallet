@@ -256,14 +256,13 @@
       "transferringButton": "Auth wird übertragen..."
     },
     "mint": {
-      "title": "Eine Anzahl (einzigartiger) NFTs an eine bestimmte Adresse minten",
-      "uniqueCheckbox": "Jeden NFT einzigartig machen, indem jeder in der Kollektion nummeriert wird",
-      "numberingLabel": "Nummerierung:",
-      "vmNumbers": "VM-Nummern (Standard)",
-      "hexNumbers": "Hex-Nummern (altes Cashonize)",
-      "amountPlaceholder": "Anzahl NFTs",
-      "startingNumberPlaceholder": "Startnummer",
-      "commitmentPlaceholder": "commitment",
+      "title": "NFTs an eine bestimmte Adresse minten",
+      "capabilityNone": "unveränderbar",
+      "capabilityMutable": "veränderbar",
+      "capabilityMinting": "mintend",
+      "commitmentPlaceholder": "Commitment (0 für VM-Nummer, 0x00 für Hex)",
+      "quantityPlaceholder": "Anzahl",
+      "sequentialCheckbox": "sequenziell (Auto-Inkrement)",
       "destinationPlaceholder": "Zieladresse",
       "mintButton": "NFTs minten",
       "mintingButton": "Minten..."

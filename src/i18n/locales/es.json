@@ -256,14 +256,13 @@
       "transferringButton": "Transfiriendo Auth..."
     },
     "mint": {
-      "title": "Acuñar un número de NFTs (únicos) a una dirección específica",
-      "uniqueCheckbox": "hacer cada NFT único numerando cada uno en la colección",
-      "numberingLabel": "Numeración:",
-      "vmNumbers": "Números VM (predeterminado)",
-      "hexNumbers": "Números Hex (cashonize antiguo)",
-      "amountPlaceholder": "cantidad de NFTs",
-      "startingNumberPlaceholder": "número inicial",
-      "commitmentPlaceholder": "commitment",
+      "title": "Acuñar NFTs a una dirección específica",
+      "capabilityNone": "inmutable",
+      "capabilityMutable": "mutable",
+      "capabilityMinting": "acuñación",
+      "commitmentPlaceholder": "commitment (0 para número VM, 0x00 para hex)",
+      "quantityPlaceholder": "cantidad",
+      "sequentialCheckbox": "secuencial (auto-incremento)",
       "destinationPlaceholder": "dirección de destino",
       "mintButton": "Acuñar NFTs",
       "mintingButton": "Acuñando..."
