@@ -5,6 +5,7 @@
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { useI18n } from 'vue-i18n'
   import HdAddressSelect from 'src/components/walletconnect/hdAddressSelect.vue'
+  import WCVerifyBanner from './WCVerifyBanner.vue'
 
   const { t } = useI18n()
 
@@ -43,6 +44,7 @@
             <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
           </div>
         </div>
+        <WCVerifyBanner :verify-context="props.sessionProposalWC.verifyContext" />
 
         <div style="margin-top: 1rem; color: #888;">{{ t('walletConnect.addressSelect.hint') }}</div>
 
@@ -51,7 +53,7 @@
         </div>
 
         <div style="margin-top: 1rem; display: flex; gap: 1rem;">
-          <input type="button" class="primaryButton" :value="t('walletConnect.sessionRequest.approveButton')" :disabled="!selectedAddresses.length" @click="approve">
+          <input type="button" class="primaryButton" :value="t('walletConnect.sessionRequest.approveButton')" :disabled="!selectedAddresses.length || props.sessionProposalWC.verifyContext?.verified?.isScam === true" @click="approve">
           <input type="button" :value="t('walletConnect.sessionRequest.rejectButton')" @click="onDialogCancel">
         </div>
       </fieldset>

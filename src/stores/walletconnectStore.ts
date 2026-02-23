@@ -387,8 +387,10 @@ export const useWalletconnectStore = (wallet: Ref<WalletType>) => {
             return;
           }
 
-          // Auto-approve early return
-          if (settingsStore.isAutoApproveValid(topic)) {
+          // Auto-approve early return (blocked for unsafe dApps)
+          const isUnsafe = event.verifyContext?.verified?.isScam === true
+            || event.verifyContext?.verified?.validation === 'INVALID';
+          if (settingsStore.isAutoApproveValid(topic) && !isUnsafe) {
             await signTransactionWC(event)
             // Decrement request count if applicable
             if (settingsStore.getAutoApproveState(topic)?.mode === "count") {

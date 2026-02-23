@@ -726,6 +726,14 @@
     }
   },
   "walletConnect": {
+    "verify": {
+      "cannotVerify": "No se puede verificar",
+      "domainMismatch": "Dominio no coincide",
+      "securityRisk": "Riesgo de seguridad",
+      "unknownWarning": "No se puede verificar este dominio. Revise la solicitud cuidadosamente antes de aprobar.",
+      "invalidWarning": "Este sitio web tiene un dominio que no coincide con el remitente de esta solicitud. Aprobar puede resultar en pérdida de fondos.",
+      "scamWarning": "Este dominio ha sido marcado como inseguro por múltiples proveedores de seguridad. Salga inmediatamente para proteger sus activos."
+    },
     "sessions": {
       "title": "Sesiones de WalletConnect",
       "noActiveSessions": "No hay sesiones activas actualmente.",

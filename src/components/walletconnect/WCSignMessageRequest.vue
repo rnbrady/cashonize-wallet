@@ -5,6 +5,7 @@
   import { type WalletKitTypes } from '@reown/walletkit'
   import { useStore } from 'src/stores/store'
   import { type WcSignMessageRequest } from '@bch-wc2/interfaces';
+  import WCVerifyBanner from './WCVerifyBanner.vue'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
   const { t } = useI18n()
@@ -42,6 +43,7 @@
             <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
           </div>
         </div>
+        <WCVerifyBanner :verify-context="signMessageRequestWC.verifyContext" />
         <hr>
         <div style="margin: 15px 0;">
           <div>{{ t('walletConnect.signMessage.signer') }}</div>
@@ -54,7 +56,7 @@
 
         <hr>
         <div class="wc-modal-bottom-buttons">
-          <input type="button" class="primaryButton" :value="t('walletConnect.signMessage.signButton')" @click="onDialogOK">
+          <input type="button" class="primaryButton" :value="t('walletConnect.signMessage.signButton')" :disabled="signMessageRequestWC.verifyContext?.verified?.isScam === true" @click="onDialogOK">
           <input type="button" :value="t('walletConnect.signMessage.cancelButton')" @click="onDialogCancel">
         </div>
       </fieldset>

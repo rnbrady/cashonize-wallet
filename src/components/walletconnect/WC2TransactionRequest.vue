@@ -10,6 +10,7 @@
   import { type WalletKitTypes } from '@reown/walletkit';
   import { type BcmrTokenResponse } from 'src/utils/zodValidation';
   import TokenIcon from '../general/TokenIcon.vue';
+  import WCVerifyBanner from './WCVerifyBanner.vue'
   import { useI18n } from 'vue-i18n'
   const store = useStore()
   const settingsStore = useSettingsStore()
@@ -194,6 +195,7 @@
             <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
           </div>
         </div>
+        <WCVerifyBanner :verify-context="transactionRequestWC.verifyContext" />
 
         <hr style="margin-top: 1.5rem;">
 
@@ -322,7 +324,7 @@
           </div>
         </details>
         <div class="wc-modal-bottom-buttons">
-          <input type="button" class="primaryButton" :value="t('walletConnect.transactionRequest.signButton')" @click="onDialogOK">
+          <input type="button" class="primaryButton" :value="t('walletConnect.transactionRequest.signButton')" :disabled="transactionRequestWC.verifyContext?.verified?.isScam === true" @click="onDialogOK">
           <input type="button" :value="t('walletConnect.transactionRequest.cancelButton')" @click="onDialogCancel" v-close-popup>
         </div>
       </fieldset>

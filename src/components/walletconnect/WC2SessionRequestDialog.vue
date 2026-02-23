@@ -3,6 +3,7 @@
   import { useDialogPluginComponent } from 'quasar'
   import type { DappMetadata } from "src/interfaces/interfaces"
   import { type WalletKitTypes } from '@reown/walletkit';
+  import WCVerifyBanner from './WCVerifyBanner.vue'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
@@ -33,8 +34,9 @@ const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginC
             <a :href="dappMetadata.url" target="_blank">{{ dappMetadata.url }}</a>
           </div>
         </div>
+        <WCVerifyBanner :verify-context="sessionProposal.verifyContext" />
         <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-          <input type="button" class="primaryButton" :value="t('walletConnect.sessionRequest.approveButton')" @click="onDialogOK" v-close-popup>
+          <input type="button" class="primaryButton" :value="t('walletConnect.sessionRequest.approveButton')" :disabled="sessionProposal.verifyContext?.verified?.isScam === true" @click="onDialogOK" v-close-popup>
           <input type="button" :value="t('walletConnect.sessionRequest.rejectButton')" @click="onDialogCancel">
         </div>
       </fieldset>
@@ -47,7 +49,7 @@ const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginC
     padding: 3rem;
     width: 500px;
     max-width: 100%;
-    height: 220px;
+    min-height: 220px;
     background-color: white
   }
   body.dark .dialogFieldset {
