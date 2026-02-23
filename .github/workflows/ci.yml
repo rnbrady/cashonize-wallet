@@ -12,6 +12,8 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,5 +26,4 @@ jobs:
       - run: yarn lint
       - run: yarn vue-tsc --noEmit
       - run: yarn test
-      - run: yarn playwright install --with-deps chromium
       - run: yarn test:e2e
